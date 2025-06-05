@@ -207,6 +207,16 @@ FtpTransferMbedTLS::~FtpTransferMbedTLS() {
     mbedtls_ssl_free(&data_ssl);
 }
 
+
+int mbedtls_test_rnd_std_rand(void *rng_state, unsigned char *output, size_t len) {
+    if (rng_state != NULL) {
+        rng_state  = NULL;
+    }
+    esp_fill_random(output, len);
+    return 0;
+}
+
+
 int FtpTransferMbedTLS::setup_tls() {
 
     if (auto ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
@@ -237,7 +247,9 @@ int FtpTransferMbedTLS::setup_tls() {
                                     (const unsigned char *) client_key,
                                     strlen(client_key),
                                     NULL,
-                                    0)) {
+                                    0,
+                                    mbedtls_test_rnd_std_rand,
+                                    NULL )) {
             MO_DBG_ERR("mbedtls_pk_parse_key: %i", ret);
             return ret;
         }
