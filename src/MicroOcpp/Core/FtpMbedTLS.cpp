@@ -319,11 +319,16 @@ int FtpTransferMbedTLS::connect_data() {
     data_opened = true;
 
     if (isSecure) {
-        //reuse SSL session of ctrl conn
 
-        if (auto ret = mbedtls_ssl_set_session(&data_ssl, 
-                    mbedtls_ssl_get_session_pointer(&ctrl_ssl))) {
-            MO_DBG_ERR("session reuse failure: %i", ret);
+        //reuse SSL session of ctrl conn
+        mbedtls_ssl_session* session;
+        if (auto ret2 = mbedtls_ssl_get_session(&ctrl_ssl, session)) {
+            MO_DBG_ERR("session reuse failure1: %i", ret2);
+            return ret2;
+        }
+
+        if (auto ret = mbedtls_ssl_set_session(&data_ssl, session)) {
+            MO_DBG_ERR("session reuse failure2: %i", ret);
             return ret;
         }
 
